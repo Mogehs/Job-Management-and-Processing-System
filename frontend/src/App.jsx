@@ -4,6 +4,7 @@ import axios from "axios";
 const App = () => {
   const [jobs, setJobs] = useState([]);
   const [title, setTitle] = useState("");
+  const [activeTab, setActiveTab] = useState("jobs"); // Track active tab: 'jobs' or 'dashboard'
 
   const fetchJobs = async () => {
     const res = await axios.get("http://localhost:3001/jobs");
@@ -23,19 +24,26 @@ const App = () => {
     fetchJobs();
   };
 
-  return (
-    <div
-      style={{
-        padding: "2rem",
-        fontFamily: "sans-serif",
-        maxWidth: "600px",
-        margin: "0 auto",
-      }}
-    >
-      <h1 style={{ marginBottom: "1rem", textAlign: "center" }}>
-        📋 Job Dashboard
-      </h1>
+  // Tab styles
+  const tabStyle = {
+    padding: "0.8rem 1.5rem",
+    cursor: "pointer",
+    backgroundColor: "#f0f0f0",
+    border: "1px solid #ccc",
+    borderBottom: "none",
+    borderRadius: "4px 4px 0 0",
+    fontWeight: "bold",
+  };
 
+  const activeTabStyle = {
+    ...tabStyle,
+    backgroundColor: "#fff",
+    borderBottom: "2px solid white",
+  };
+
+  // Render the Job Management UI
+  const renderJobsUI = () => (
+    <div>
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
         <input
           type="text"
@@ -94,6 +102,58 @@ const App = () => {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+
+  // Render the Bull Board UI in an iframe
+  const renderBullBoardUI = () => (
+    <div style={{ height: "600px", width: "100%", border: "1px solid #ccc" }}>
+      <iframe
+        src="http://localhost:3001/admin/queues"
+        style={{ width: "100%", height: "100%", border: "none" }}
+        title="Bull Board Queue Dashboard"
+      />
+    </div>
+  );
+
+  return (
+    <div
+      style={{
+        padding: "2rem",
+        fontFamily: "sans-serif",
+        maxWidth: "800px",
+        margin: "0 auto",
+      }}
+    >
+      <h1 style={{ marginBottom: "1rem", textAlign: "center" }}>
+        📋 Job Management System
+      </h1>
+
+      {/* Tab Navigation */}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+        <div
+          style={activeTab === "jobs" ? activeTabStyle : tabStyle}
+          onClick={() => setActiveTab("jobs")}
+        >
+          Job Dashboard
+        </div>
+        <div
+          style={activeTab === "dashboard" ? activeTabStyle : tabStyle}
+          onClick={() => setActiveTab("dashboard")}
+        >
+          Queue Dashboard
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: "1.5rem",
+          border: "1px solid #ccc",
+          borderRadius: "0 4px 4px 4px",
+        }}
+      >
+        {activeTab === "jobs" ? renderJobsUI() : renderBullBoardUI()}
+      </div>
     </div>
   );
 };
