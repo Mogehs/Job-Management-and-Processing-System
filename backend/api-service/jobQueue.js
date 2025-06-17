@@ -21,7 +21,6 @@ const JobService = {
   },
 
   async getAllJobs() {
-    jobQueue.getJobs();
     const jobIds = await redisClient.smembers("jobs");
     if (!jobIds || jobIds.length === 0) return [];
 
