@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { jobQueue } from "./jobQueue.js";
+import { jobQueue, JobService } from "./jobQueue.js";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
 import { ExpressAdapter } from "@bull-board/express";
@@ -22,31 +22,30 @@ const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
   serverAdapter: serverAdapter,
 });
 
-const jobs = new Map();
-
 app.post("/jobs", async (req, res) => {
-  const { title } = req.body;
-  const job = await jobQueue.add("new-job", { title });
-  jobs.set(job.id, { id: job.id, title, status: "Pending" });
-  res.status(201).json(jobs.get(job.id));
-});
+  try {
+    const { title } = req.body;
+    const job = await jobQueue.add("new-job", { title });
 
-app.get("/jobs", (req, res) => {
-  res.json(Array.from(jobs.values()));
-});
+    const jobData = await JobService.createJob(job.id, title);
 
-app.post("/jobs/:id/complete", (req, res) => {
-  const { id } = req.params;
-  if (jobs.has(id)) {
-    const job = jobs.get(id);
-    job.status = "Completed";
-    jobs.set(id, job);
-    return res.json({ message: "Marked as completed" });
+    res.status(201).json(jobData);
+  } catch (error) {
+    console.error("Error creating job:", error);
+    res.status(500).json({ error: "Failed to create job" });
   }
-  res.status(404).json({ error: "Job not found" });
 });
 
-// Mount Bull Board UI
+app.get("/jobs", async (req, res) => {
+  try {
+    const jobs = await JobService.getAllJobs();
+    res.json(jobs);
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({ error: "Failed to fetch jobs" });
+  }
+});
+
 app.use("/admin/queues", serverAdapter.getRouter());
 
 app.listen(3001, () => {

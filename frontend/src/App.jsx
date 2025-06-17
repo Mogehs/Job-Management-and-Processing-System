@@ -145,6 +145,7 @@ const App = () => {
         </div>
       </div>
 
+      {/* Content area with border to match tabs */}
       <div
         style={{
           padding: "1.5rem",
